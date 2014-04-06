@@ -8,8 +8,13 @@ class Eye::Client
     @socket_path = socket_path
   end
 
-  def command(cmd, *args)
-    attempt_command(Marshal.dump([cmd, *args]))
+  def command(cmd, args, wait = false)
+    pack = Marshal.dump(:cmd => cmd, :args => args, :wait => wait)
+    if wait
+      send_request(pack)
+    else
+      attempt_command(pack)
+    end
   end
 
   def attempt_command(pack)

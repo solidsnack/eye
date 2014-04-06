@@ -85,19 +85,22 @@ class Eye::Cli < Thor
 
   [:start, :stop, :restart, :unmonitor, :monitor, :delete, :match].each do |_cmd|
     desc "#{_cmd} MASK[,...]", "#{_cmd} app,group or process"
+    method_option :wait, :type => :boolean, :aliases => "-w"
     define_method(_cmd) do |*masks|
-      send_command(_cmd, *masks)
+      send_command(_cmd, masks, options[:wait])
     end
   end
 
   desc "signal SIG MASK[,...]", "send signal to app,group or process"
+  method_option :wait, :type => :boolean, :aliases => "-w"
   def signal(sig, *masks)
-    send_command(:signal, sig, *masks)
+    send_command(:signal, sig, masks, options[:wait])
   end
 
   desc "break MASK[,...]", "break chain executing"
+  method_option :wait, :type => :boolean, :aliases => "-w"  
   def break(*masks)
-    send_command(:break_chain, *masks)
+    send_command(:break_chain, masks, options[:wait])
   end
 
   desc "trace [MASK]", "tracing log(tail + grep) for app,group or process"

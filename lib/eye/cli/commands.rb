@@ -5,14 +5,14 @@ private
     @client ||= Eye::Client.new(Eye::Local.socket_path)
   end
 
-  def _cmd(cmd, *args)
-    client.command(cmd, *args)
+  def _cmd(cmd, args, wait = false)
+    client.command(cmd, args, wait)
   rescue Errno::ECONNREFUSED, Errno::ENOENT
     :not_started
   end
 
-  def cmd(cmd, *args)
-    res = _cmd(cmd, *args)
+  def cmd(cmd, args, wait = false)
+    res = _cmd(cmd, args, wait)
 
     if res == :not_started
       error! "socket(#{Eye::Local.socket_path}) not found, did you run `eye load`?"
@@ -54,8 +54,8 @@ private
     end
   end
 
-  def send_command(_cmd, *args)
-    res = cmd(_cmd, *args)
+  def send_command(_cmd, args, wait = false)
+    res = cmd(_cmd, args, wait)
     if res == :unknown_command
       error! "unknown command :#{_cmd}"
     elsif res == :corrupted_data
