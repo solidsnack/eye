@@ -1,19 +1,27 @@
 module Eye::Controller::Commands
 
   # Main method, answer for the client command
-  def command(cmd, *args)
+  def command(cmd, args, condition)
     debug "client command: #{cmd} #{args * ', '}"
-
     start_at = Time.now
     cmd = cmd.to_sym
+    res = execute_command(cmd, args, condition)
+    GC.start
+    info "client command: #{cmd} #{args * ', '} (#{Time.now - start_at}s)"
+    res
+  end
+
+private
+
+  def execute_command(cmd, args, condition)
+    return exclusive{ send_command(cmd, args, condition) } if cmd == :delete
+    return signal(args, condition) if cmd == :signal
+
+    if [:start, :stop, :restart, :unmonitor, :monitor, :break_chain].include?(cmd)
+      return send_command(cmd, args, condition)
+    end
 
     res = case cmd
-      when :start, :stop, :restart, :unmonitor, :monitor, :break_chain
-        send_command(cmd, *args)
-      when :delete
-        exclusive{ send_command(cmd, *args) }
-      when :signal
-        signal(*args)
       when :load
         load(*args)
       when :quit
@@ -43,13 +51,9 @@ module Eye::Controller::Commands
         :unknown_command
     end
 
-    GC.start
-    info "client command: #{cmd} #{args * ', '} (#{Time.now - start_at}s)"
-
+    condition.signal(res)
     res
   end
-
-private
 
   def quit
     info 'Quit!'

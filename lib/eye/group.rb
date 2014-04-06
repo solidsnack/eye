@@ -71,7 +71,7 @@ class Eye::Group
     {:queue => scheduler_actions_list, :chain => chain_status}
   end
 
-  def send_command(command, *args)
+  def send_command(command, args, condition)
     info "send_command: #{command}"
 
     case command
@@ -80,7 +80,7 @@ class Eye::Group
       when :break_chain
         break_chain *args
       else
-        schedule command, *args, Eye::Reason::User.new(command)
+        schedule command, args, Eye::Reason::User.new(command), condition
     end
   end
 

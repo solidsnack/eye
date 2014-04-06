@@ -1,7 +1,7 @@
 module Eye::Controller::SendCommand
 
-  def send_command(command, *args)
-    matched_objects(*args) do |obj|
+  def send_command(command, args, condition)
+    matched_objects(args) do |obj|
       if command.to_sym == :delete
         remove_object_from_tree(obj)
 
@@ -9,7 +9,7 @@ module Eye::Controller::SendCommand
         save_cache
       end
 
-      obj.send_command(command)
+      obj.send_command(command, [], condition)
     end
   end
 
@@ -17,9 +17,9 @@ module Eye::Controller::SendCommand
     matched_objects(*args)
   end
 
-  def signal(signal, *args)
+  def signal(signal, args, condition)
     matched_objects(*args) do |obj|
-      obj.send_command :signal, signal || 0
+      obj.send_command :signal, [signal || 0], condition
     end
   end
 
@@ -27,8 +27,8 @@ private
 
   class Error < Exception; end
 
-  def matched_objects(*args, &block)
-    objs = find_objects(*args)
+  def matched_objects(args, &block)
+    objs = find_objects(args)
     res = objs.map(&:full_name)
     objs.each{|obj| block[obj] } if block
     {:result => res}

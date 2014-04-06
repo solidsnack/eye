@@ -53,8 +53,8 @@ class Eye::ChildProcess
     state == :up
   end
 
-  def send_command(command, *args)
-    schedule command, *args, Eye::Reason::User.new(command)
+  def send_command(command, args, condition)
+    schedule command, args, Eye::Reason::User.new(command), condition
   end
 
   def start

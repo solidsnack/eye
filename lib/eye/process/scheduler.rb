@@ -1,15 +1,11 @@
 module Eye::Process::Scheduler
 
   # ex: schedule :update_config, config, "reason: update_config"
-  def schedule(command, *args, &block)
+  def schedule(command, args, reason = nil, cond = nil, &block)
     if scheduler.alive?
       unless self.respond_to?(command, true)
         warn ":#{command} scheduling is unsupported"
         return
-      end
-
-      reason = if args.present? && args[-1].kind_of?(Eye::Reason)
-        args.pop
       end
 
       info "schedule :#{command} #{reason ? "(reason: #{reason})" : nil}"
@@ -17,11 +13,11 @@ module Eye::Process::Scheduler
       if reason.class == Eye::Reason
         # for auto reasons
         # skip already running commands and all in chain
-        scheduler.add_wo_dups_current(:scheduled_action, command, {:args => args, :reason => reason}, &block)
+        scheduler.add_wo_dups_current(:scheduled_action, command, {:args => args, :reason => reason, :conditions => cond}, &block)
       else
         # for manual, or without reason
         # skip only for last in chain
-        scheduler.add_wo_dups(:scheduled_action, command, {:args => args, :reason => reason}, &block)
+        scheduler.add_wo_dups(:scheduled_action, command, {:args => args, :reason => reason, :conditions => cond}, &block)
       end
     end
   end
@@ -43,7 +39,11 @@ module Eye::Process::Scheduler
     @last_scheduled_reason = reason
     @last_scheduled_at = Time.now
 
-    send(command, *h[:args], &block)
+    res = send(command, *h[:args], &block)
+    if condition = h[:condition]
+      condition.signal(res)
+    end
+    
     @current_scheduled_command = nil
     info "<= #{command}"
 

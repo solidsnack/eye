@@ -24,13 +24,16 @@ class Eye::Server
     text = socket.read
 
     begin
-      command, *args = Marshal.load(text)
+      h = Marshal.load(text)
+      cmd = h[:cmd]
+      args = h[:args]
+      wait = h[:wait]
     rescue => ex
       error "Failed to read from socket: #{ex.message}"
       return
     end
 
-    response = command(command, *args)
+    response = command(cmd, args, wait)
     socket.write(Marshal.dump(response))
 
   rescue Errno::EPIPE
@@ -41,8 +44,10 @@ class Eye::Server
     socket.close
   end
 
-  def command(cmd, *args)
-    Eye::Control.command(cmd, *args)
+  def command(cmd, args, wait = false)
+    condition = Celluloid::Condition.new
+    res = Eye::Control.command(cmd, args, condition)
+    wait ? condition.wait : res
   end
 
   def unlink_socket_file

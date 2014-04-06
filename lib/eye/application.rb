@@ -46,11 +46,11 @@ class Eye::Application
   def debug_data
   end
 
-  def send_command(command, *args)
+  def send_command(command, args, condition)
     info "send_command #{command}"
 
     @groups.each do |group|
-      group.send_command(command, *args)
+      group.send_command(command, args, condition)
     end
   end
 
