@@ -19,6 +19,10 @@ class Eye::SystemResources
       cache.children(parent_pid)
     end
 
+    def threads(pid)
+      cache.threads(pid)
+    end
+
     def start_time(pid) # unixtime
       if cpu = cache.proc_cpu(pid)
         cpu.start_time.to_i / 1000
@@ -73,6 +77,7 @@ class Eye::SystemResources
       @memory = {}
       @cpu = {}
       @ppids = {}
+      @threads = {}
     end
 
     def proc_mem(pid)
@@ -93,6 +98,10 @@ class Eye::SystemResources
       else
         []
       end
+    end
+
+    def threads(pid)
+      @threads[pid] ||= `ps -p #{pid.to_i} -Lo lwp --no-headers 2>/dev/null`.split.map(&:to_i)
     end
   end
 

@@ -11,12 +11,9 @@ module Eye::Process::System
     # check pid from pid_file, in case when server reboot, or something
     #   sometimes pid can be one of the eye-self(lwp) pid, we dont want
     #   eye to die
-    if res && res != self.pid
-      cmd = Eye::Sigar.proc_args(res)[0].to_s rescue ''
-      if res == $$ || cmd.start_with?(Eye::PROCLINE)
-        error "Wtf? O_o load eye-self(lwp) pid_file #{res} #{$$} '#{cmd}'"
-        return
-      end
+    if res && res != self.pid && Eye::SystemResources.threads($$).include?(res)
+      error "O_o load pid of EYE-lwp '#{self[:pid_file_ex]}' #{_pid} #{Eye::SystemResources.threads($$)}"
+      return
     end
 
     res

@@ -57,6 +57,15 @@ describe "Eye::SystemResources" do
     x.should == @pid
   end
 
+  it "get threads" do
+    x = Eye::SystemResources.threads($$)
+    x.size.should >= 3
+    x.should include($$)
+
+    x = Eye::SystemResources.threads(123433)
+    x.should == []
+  end
+
   it "should cache and update when interval" do
     Eye::SystemResources.cache.setup_expire(1)
 
