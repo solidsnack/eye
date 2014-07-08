@@ -62,6 +62,10 @@ describe "Eye::SystemResources" do
     x.size.should >= 3
     x.should include($$)
 
+    names = x.map { |pid| Eye::Sigar.proc_state($$).name }.uniq
+    names.size.should == 1
+    names[0].should == 'ruby'
+
     x = Eye::SystemResources.threads(123433)
     x.should == []
   end

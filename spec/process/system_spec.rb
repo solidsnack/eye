@@ -21,11 +21,6 @@ describe "Eye::Process::System" do
 
     File.open(@process[:pid_file_ex], 'w'){|f| f.write($$) }
     @process.load_pid_from_file.should == nil
-
-    @pid = fork { at_exit{}; sleep 3; exit }
-
-    File.open(@process[:pid_file_ex], 'w'){|f| f.write(@pid) }
-    @process.load_pid_from_file.should == nil
   end
 
   it "failsafe_load_pid" do
