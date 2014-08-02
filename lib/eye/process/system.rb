@@ -2,21 +2,23 @@ require 'timeout'
 
 module Eye::Process::System
 
+  def pid=(new_pid)
+    if new_pid != @pid
+      @pid = new_pid
+      Eye::PidIdentity.set(pid_file_ex, @pid)
+    end
+  end
+
   def load_pid_from_file
     res = if File.exists?(self[:pid_file_ex])
       _pid = File.read(self[:pid_file_ex]).to_i
       _pid > 0 ? _pid : nil
     end
 
-    # check pid from pid_file, in case when server reboot, or something
-    #   sometimes pid can be one of the eye-self(lwp) pid, we dont want
-    #   eye to die
-    if res && res != self.pid
-      cmd = Eye::Sigar.proc_args(res)[0].to_s rescue ''
-      if res == $$ || cmd.start_with?(Eye::PROCLINE)
-        error "Wtf? O_o load eye-self(lwp) pid_file #{res} #{$$} '#{cmd}'"
-        return
-      end
+    if res && (res != self.pid) && (Eye::PidIdentity.check(pid_file_ex, res) == :bad)
+      warn "pid_identity for <#{res}> is wrong, pid_file probably pointed to wrong process, not accepting this pid"
+      clear_pid_file
+      res = nil
     end
 
     res

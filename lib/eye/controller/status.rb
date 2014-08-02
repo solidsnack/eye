@@ -12,6 +12,7 @@ module Eye::Controller::Status
       :logger => Eye::Logger.args.present? ? [Eye::Logger.dev, *Eye::Logger.args] : Eye::Logger.dev,
       :pid_path => Eye::Local::pid_path,
       :sock_path => Eye::Local::socket_path,
+      :pids_path => Eye::Local::pids_path,
       :actors => actors
     }
 
