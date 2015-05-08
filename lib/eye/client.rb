@@ -23,10 +23,15 @@ class Eye::Client
 
   def send_request(pack)
     UNIXSocket.open(@socket_path) do |socket|
+      puts "#{@socket_path} pack: '#{pack.unpack('H*').first}'"
       socket.write(pack)
       data = socket.read
+      puts "#{@socket_path} data: '#{data.unpack('H*').first}'"
       res = Marshal.load(data) rescue :corrupted_data
+      puts "#{@socket_path} res: '#{res}'"
+      res
     end
   end
+
 
 end
